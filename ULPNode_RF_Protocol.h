@@ -58,6 +58,11 @@
 #define RF_DAT_COUNTER      0x3C // 3C to 3F = Counter data
 #define RF_DAT_LOW_BAT      0x40 // 40 to 43 = Low Battery flag
 #define RF_DAT_DUMMY        0x44 // 44 to 4F = Free, for future use
+
+#define RF_DAT_PRESSURE     0x44 // 44 to 47 = Free, for future use
+#define RF_DAT_RES1         0x48 // 48 to 4B = Free, for future use
+#define RF_DAT_RES2         0x4C // 4C to 4F = Free, for future use
+
 #define RF_DAT_IO_DIGITAL   0x50 // 50 to 5F = Digital I/O
 #define RF_DAT_IO_ANALOG    0x60 // 60 to 67 = Analog I/O
 #define RF_DAT_SENSOR_END		0x67 // last value for sensor payload type
@@ -78,8 +83,9 @@
 #define isDataVolt(c)      ( (c & RF_DAT_SENSOR_MASK) == RF_DAT_VOLT)
 #define isDataCounter(c)   ( (c & RF_DAT_SENSOR_MASK) == RF_DAT_COUNTER)
 #define isDataLowBat(c)    ( (c & RF_DAT_SENSOR_MASK) == RF_DAT_LOW_BAT)
-#define isDataDigitalIO(c) ( c >= RF_DAT_IO_DIGITAL && c <= RF_DAT_IO_DIGITAL+16)
+#define isDataDigitalIO(c) ( c >= RF_DAT_IO_DIGITAL && c <= RF_DAT_IO_DIGITAL+15)
 #define isDataAnalogIO(c)  ( c >= RF_DAT_IO_ANALOG && c <= RF_DAT_IO_ANALOG+7)
+#define isDataPressure(c)  ( (c & RF_DAT_SENSOR_MASK) == RF_DAT_PRESSURE )
 
 // Application Parameters header flags of Radio Frame
 #define RF_PAYLOAD_REQ_ACK   0x01  // Request ACK FLAGS
@@ -237,6 +243,12 @@ typedef struct
   uint8_t nodeid;    // node ID
 } s_dhcp;
 
+// dhcp format in payload
+typedef struct
+{
+  uint8_t code;      // code
+  uint16_t pressure; // pressure
+} s_pressure;
 
 // Dummy payload, used to be able to handle any possible payload
 // with pointer, and allocating the max payload size, take care to
@@ -265,6 +277,7 @@ char * decode_temp(int16_t, char * index=NULL);
 char * decode_hum(uint16_t, char * index=NULL);
 char * decode_lux(uint16_t, char * index=NULL);
 char * decode_co2(uint16_t, char * index=NULL);
+char * decode_pressure(uint16_t, char * index=NULL);
 char * decode_rssi(int8_t, char * index=NULL);
 char * decode_counter(uint32_t, char * index=NULL);
 char * decode_lowbat(uint8_t, char * index=NULL);
