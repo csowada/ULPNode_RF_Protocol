@@ -184,7 +184,7 @@ Input   : voltage (mV)
 char * decode_volt(uint16_t volt, char * index)
 {
   // convert voltage to V format xx.yyy
-  sprintf_P(pbuf, PSTR("\"volt%s\":%s"), index);
+  sprintf_P(pbuf, PSTR("\"volt%s\":"), index);
   #ifdef ARDUINO
     dtostrf(volt/1000.0f, 5, 3, pbuf+strlen(pbuf));
   #else
@@ -221,7 +221,7 @@ Input   : humidity (*10)
 ====================================================================== */
 char * decode_hum(uint16_t hum, char * index)
 {
-  sprintf_P(pbuf, PSTR("\"hum%s\":%d"), index, hum);
+  sprintf_P(pbuf, PSTR("\"hum%s\":"), index, hum);
   #ifdef ARDUINO
     dtostrf(hum/10.0f, 4, 1,  pbuf+strlen(pbuf));
   #else
@@ -256,6 +256,23 @@ Input   : co2
 char * decode_co2(uint16_t co2, char * index)
 {
   sprintf_P(pbuf, PSTR("\"co2%s\":%d"), index, co2);
+  return pbuf;
+}
+
+/* ======================================================================
+Function: decode_pressure
+Purpose : print the pressure value
+Input   : pressure (*1000)
+          index of sensor number (0 to 3)
+====================================================================== */
+char * decode_pressure(uint16_t pressure, char * index)
+{
+  sprintf_P(pbuf, PSTR("\"press%s\":"), index);
+  #ifdef ARDUINO
+    dtostrf(pressure/100.0f, 4, 2,  pbuf+strlen(pbuf));
+  #else
+    ftoa(pressure/100.0f, pbuf+strlen(pbuf), 4 );
+  #endif
   return pbuf;
 }
 
@@ -303,7 +320,7 @@ Input   : analog value
 ====================================================================== */
 char * decode_analog_io(uint16_t value, uint8_t pin)
 {
-  sprintf_P(pbuf, PSTR("\"a%d\":%ld"), pin, value);
+  sprintf_P(pbuf, PSTR("\"a%d\":%d"), pin, value);
   return pbuf;
 }
 
@@ -474,6 +491,12 @@ uint8_t decode_received_data(uint8_t nodeid, int8_t rssi, uint8_t len, uint8_t c
         pval =  decode_analog_io(((s_io_analog*)pdat)->analog,
                                  ((s_io_analog*)pdat)->code - RF_DAT_IO_ANALOG);
         data_size = sizeof(s_io_analog);
+        
+      } else if (isDataPressure(data_type) && l>=sizeof(s_pressure)) {
+        // pressure and have enought data ?
+        pval =  decode_pressure(((s_pressure*)pdat)->pressure, str_idx);
+        data_size = sizeof(s_pressure);
+        
       } else {
         // Unknown data code, so we can't check data value
         // nor size, so we decide to discard the
